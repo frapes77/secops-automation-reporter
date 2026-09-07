@@ -134,7 +134,7 @@ def generate_pdf_report(zabbix_data, wazuh_data, output_pdf, target_host=None):
     story.append(Spacer(1, 10))
 
     # Tabella Zabbix
-    story.append(Paragraph("🚨 Criticità Infrastrutturali Attive (Zabbix)", h2_style))
+    story.append(Paragraph("Criticità Infrastrutturali Attive (Zabbix)", h2_style))
     if zabbix_data:
         zb_table_data = [["Host / Apparato", "Descrizione Trigger / Alert", "Priorità"]]
         for item in zabbix_data:
@@ -163,7 +163,7 @@ def generate_pdf_report(zabbix_data, wazuh_data, output_pdf, target_host=None):
         story.append(Paragraph("Nessun problema critico attivo trovato per questo filtro.", cell_style))
 
     # Tabella Wazuh
-    story.append(Paragraph("⚠️ Vulnerabilità Software Rilevate (Wazuh)", h2_style))
+    story.append(Paragraph("Vulnerabilità Software Rilevate (Wazuh)", h2_style))
     if wazuh_data:
         wz_table_data = [["Agent / PC", "Descrizione Vulnerabilità", "Livello"]]
         for item in wazuh_data:
