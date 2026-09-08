@@ -26,7 +26,7 @@ Lo script isola le credenziali e i parametri di rete all'inizio del file sorgent
 ```python
 # --- CONFIGURAZIONI INFRASTRUTTURA ---
 WAZUH_INDEXER_URL = "https://<IL_TUO_IP_WAZUH>:9200"
-ZABBIX_API_URL = "http://<IL_TUO_IP_ZABBIX>:8091/api_jsonrpc.php"
+ZABBIX_API_URL = "http://<IL_TUO_IP_ZABBIX>:PORTA/api_jsonrpc.php"
 
 # --- TOKEN AUTOMATICO ZABBIX ---
 ZABBIX_API_TOKEN = "<IL_TUO_TOKEN_DI_AUTENTICAZIONE_ZABBIX>"
