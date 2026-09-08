@@ -1,27 +1,27 @@
-# SecOps Automated Correlation Pipeline
+# SecOps Automated Correlation & Baseline Pipeline
 
 ![Python Version](https://shields.io)
 ![License](https://shields.io)
 
-Una pipeline di automazione in **Python** progettata per centralizzare, correlare ed esportare in formato **PDF** gli alert critici provenienti da piattaforme di monitoraggio e sicurezza diverse: **Wazuh (SIEM/XDR)** e **Zabbix (Infrastructure Monitoring)**.
+Una pipeline di automazione professionale in **Python** progettata per centralizzare, correlare ed esportare in formato **PDF** gli alert critici provenienti da piattaforme di monitoraggio e sicurezza disallineate: **Wazuh (SIEM/XDR)** e **Zabbix (Infrastructure Monitoring)**.
 
-Questo strumento risolve il problema della frammentazione dei dati nei team SecOps, riducendo il *Mean Time to Respond* (MTTR) attraverso l'eliminazione dei controlli manuali tra console separate.
+Questo strumento è specificamente orientato alle attività di **Vulnerability Management** e **Remediation (Patching)**, offrendo agli analisti SecOps la capacità di scattare "fotografie" storiche mirate dell'infrastruttura per valutare l'efficacia dei controlli di sicurezza nel tempo.
 
 ---
 
-## Funzionalità
+## Funzionalità Avanzate
 
-- **Integrazione API Multi-Piattaforma:** Interrogazione nativa di Wazuh Indexer tramite Query DSL (porta 9200) e di Zabbix API tramite protocollo JSON-RPC (porta 8091).
-- **Reportistica Mirata o Globale:** Supporta la generazione di report sull'intera infrastruttura oppure focalizzati su un singolo endpoint specifico tramite input interattivo.
-- **Filtro Host Flessibile (Fuzzy & Case-Insensitive):** Implementa una logica di matching parziale via codice Python. Se un host è registrato come `SERVER-PROD-01` su Wazuh e `server-prod-01.local` su Zabbix, lo script è in grado di correlare correttamente gli eventi ignorando discrepanze di maiuscole/minuscole o naming convention disallineate.
-- **Prevenzione dei Loop e Gestione Eccezioni:** Architettura resiliente che garantisce la corretta stesura del report anche nel caso in cui l'host cercato sia monitorato su una sola delle due piattaforme (o non presenti allarmi attivi).
-- **Visualizzazione Professionale:** Generazione automatica di documenti PDF pronti per la condivisione aziendale tramite la libreria `ReportLab`, con tabelle autowrap, colorazioni SecOps standard (Hex Palette) e impaginazione dinamica.
+- **Analisi Temporale Retrospettiva (Baseline Audit):** Consente di definire interattivamente una data di riferimento e una finestra temporale (es. 30, 60, 90 giorni) per analizzare lo stato dei sistemi a ritroso, isolando perfettamente i perimetri pre e post-patching.
+- **Ereditarietà Cumulativa dei Livelli:** Menu di selezione della severità minima (da 1 a 5). Selezionando ad esempio il livello *High*, la pipeline estrae automaticamente sia gli eventi *High* che quelli a gravità superiore (*Critical* / *Disaster*), garantendo una visibilità cumulativa verso l'alto.
+- **Deduplicazione Totale Multi-Livello:** Implementa un algoritmo in grado di accorpare i log ripetitivi e ridondanti (es. flooding di eventi di sistema simili nello stesso minuto), riducendo la dimensione dei report e mantenendo solo record storici unici.
+- **Ordinamento Combinato Matematico:** Gli allarmi all'interno del report vengono organizzati secondo una doppia cernita: prioritizzati prima per peso di gravità (dal più pericoloso al meno pericoloso) e, a parità di livello, disposti in rigoroso ordine cronologico decrescente (dal più recente al meno recente).
+- **Executive Summary Grafico con Palette SecOps:** Il PDF generato include un pannello iniziale con i KPI numerici degli alert suddivisi per livello, formattati con tag colore condizionali nativi (Rosso, Arancio, Giallo, Blu, Verde) per una valutazione immediata del rischio aziendale.
 
 ---
 
 ## Configurazione e Personalizzazione
 
-Lo script è strutturato per essere pronto all'uso con una personalizzazione minima direttamente nel codice sorgente. Prima di avviarlo, apri il file dello script e inserisci i parametri della tua infrastruttura nelle apposite variabili all'inizio del file:
+Lo script isola le credenziali e i parametri di rete all'inizio del file sorgente per un deployment sicuro conforme agli standard Open Source. Prima di avviarlo, inserisci i parametri della tua infrastruttura nelle apposite variabili:
 
 ```python
 # --- CONFIGURAZIONI INFRASTRUTTURA ---
@@ -29,7 +29,7 @@ WAZUH_INDEXER_URL = "https://<IL_TUO_IP_WAZUH>:9200"
 ZABBIX_API_URL = "http://<IL_TUO_IP_ZABBIX>:8091/api_jsonrpc.php"
 
 # --- TOKEN AUTOMATICO ZABBIX ---
-ZABBIX_API_TOKEN = "<IL_TUO_TOKEN_ZABBIX_CREATO_SULLA_PIATTAFORMA>"
+ZABBIX_API_TOKEN = "<IL_TUO_TOKEN_DI_AUTENTICAZIONE_ZABBIX>"
 ```
 
 ---
@@ -43,27 +43,30 @@ ZABBIX_API_TOKEN = "<IL_TUO_TOKEN_ZABBIX_CREATO_SULLA_PIATTAFORMA>"
    ```
 
 2. **Installazione delle Dipendenze:**
-   Assicurati di installare le librerie necessarie prima di lanciare lo script:
+   Assicurati di installare i moduli necessari prima di lanciare la pipeline:
    ```bash
    pip install requests reportlab
    ```
 
 ---
 
-## Modalità d'Uso
+## Modalità d'Uso Interattiva
 
 Avvia lo script dal tuo terminale o IDE:
 ```bash
-python Analisi-Wazuh-Zabbix_rev4.py
+python Analisi-Wazuh-Zabbix_rev5.py
 ```
 
-1. **Filtro Host:** Lo script ti chiederà il nome dell'host.
-   - *Premi INVIO* per generare il report globale su tutta l'infrastruttura.
-   - *Digita il nome (anche parziale o minuscolo)* di una macchina per estrarre solo i dati di quell'host.
-2. **Autenticazione Wazuh:** Inserisci l'username e la password (che rimarrà nascosta a schermo durante la digitazione) per connetterti a Wazuh Indexer.
-3. **Output:** Al termine dell'elaborazione verrà generato un file PDF pulito e strutturato, denominato `SecOps_Executive_Report.pdf` (globale) oppure `SecOps_Report_<nomehost>.pdf` (singolo).
+L'interfaccia a riga di comando guiderà l'operatore nella configurazione del report attraverso quattro passaggi:
+1. **Finestra Temporale:** Inserisci la data di riferimento (GG/MM/AAAA) per l'analisi a ritroso [Premere INVIO per partire da oggi]. Successivamente, definisci la durata in giorni della finestra [Default: 30 giorni].
+2. **Filtro di Severità:** Seleziona il livello minimo di sbarramento (da 1 a 5) [Default: 4 - High].
+3. **Filtro Host:** Digita il nome (anche parziale o case-insensitive) di una macchina specifica (es. `PC_CED`) per isolare i suoi dati, oppure premi INVIO per generare un report globale sull'intera infrastruttura.
+4. **Autenticazione:** Inserisci l'username e la password di Wazuh Indexer (la password rimarrà nascosta a schermo durante la digitazione per ragioni di sicurezza).
+
+### Output Rilasciato
+Al termine del processo verrà compilato un documento PDF executive denominato `SecOps_Report_<nomehost>_<data>.pdf` o `SecOps_Executive_Report_<data>.pdf`, strutturato a quattro colonne con layout responsive, tabelle autowrap e statistiche dei KPI in evidenza.
 
 ---
 
-## 📄 Licenza
+## Licenza
 Questo progetto è rilasciato sotto licenza MIT. Consulta il file `LICENSE` per ulteriori dettagli.
