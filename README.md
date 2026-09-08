@@ -60,7 +60,7 @@ python Analisi-Wazuh-Zabbix_rev5.py
 L'interfaccia a riga di comando guiderà l'operatore nella configurazione del report attraverso quattro passaggi:
 1. **Finestra Temporale:** Inserisci la data di riferimento (GG/MM/AAAA) per l'analisi a ritroso [Premere INVIO per partire da oggi]. Successivamente, definisci la durata in giorni della finestra [Default: 30 giorni].
 2. **Filtro di Severità:** Seleziona il livello minimo di sbarramento (da 1 a 5) [Default: 4 - High].
-3. **Filtro Host:** Digita il nome (anche parziale o case-insensitive) di una macchina specifica (es. `PC_CED`) per isolare i suoi dati, oppure premi INVIO per generare un report globale sull'intera infrastruttura.
+3. **Filtro Host:** Digita il nome (anche parziale o case-insensitive) di una macchina specifica per isolare i suoi dati, oppure premi INVIO per generare un report globale sull'intera infrastruttura.
 4. **Autenticazione:** Inserisci l'username e la password di Wazuh Indexer (la password rimarrà nascosta a schermo durante la digitazione per ragioni di sicurezza).
 
 ### Output Rilasciato
