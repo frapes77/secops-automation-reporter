@@ -8,7 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 # --- CONFIGURAZIONI INFRASTRUTTURA ---
-WAZUH_INDEXER_URL = "https://IL DEL SERVER WAZUH:9200"
+WAZUH_INDEXER_URL = "https://IP DEL SERVER WAZUH:9200"
 ZABBIX_API_URL = "http://IP DEL SERVER ZABBIX:PORTA/api_jsonrpc.php"
 ZABBIX_API_TOKEN = "IL TUO TOKEN GENERATO SU ZABBIX"
 
