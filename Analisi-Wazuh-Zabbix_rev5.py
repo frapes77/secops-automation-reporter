@@ -8,9 +8,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 # --- CONFIGURAZIONI INFRASTRUTTURA ---
-WAZUH_INDEXER_URL = "https://172.16.1.172:9200"
-ZABBIX_API_URL = "http://172.16.1.172:8091/api_jsonrpc.php"
-ZABBIX_API_TOKEN = "47b3189e1322f446d0f25229e1768ef98d8a42d8866b78ff55e6d3635e2977b7"
+WAZUH_INDEXER_URL = "https://IL DEL SERVER WAZUH:9200"
+ZABBIX_API_URL = "http://IP DEL SERVER ZABBIX:PORTA/api_jsonrpc.php"
+ZABBIX_API_TOKEN = "IL TUO TOKEN GENERATO SU ZABBIX"
 
 requests.packages.urllib3.disable_warnings()
 
@@ -358,7 +358,7 @@ def generate_pdf_report(zabbix_data, wazuh_data, output_pdf, target_host=None, d
                 stats["Information"] += 1
 
         # --- 4. GENERAZIONE PANNELLO EXECUTIVE SUMMARY ---
-        story.append(Paragraph("📊 Executive Summary & Baseline Info", h2_style))
+        story.append(Paragraph("Executive Summary & Baseline Info", h2_style))
         summary_data = [
             [Paragraph("Data di Riferimento:", bold_cell_style),
              Paragraph(baseline_date_str if baseline_date_str else "Oggi (Tempo Reale)", cell_style),
@@ -392,7 +392,7 @@ def generate_pdf_report(zabbix_data, wazuh_data, output_pdf, target_host=None, d
         story.append(Spacer(1, 10))
 
         # --- 5. IMPAGINAZIONE TABELLA ZABBIX ---
-        story.append(Paragraph("🚨 Criticità Infrastrutturali Attive (Zabbix)", h2_style))
+        story.append(Paragraph("Criticità Infrastrutturali Attive (Zabbix)", h2_style))
         if zb_rows:
             # ORDINAMENTO COMBINATO: Prima per gravità (decrescente), poi per data/ora (decrescente)
             zb_rows.sort(key=lambda x: (x['weight'], x['dt']), reverse=True)
@@ -427,7 +427,7 @@ def generate_pdf_report(zabbix_data, wazuh_data, output_pdf, target_host=None, d
 
          # --- 6. IMPAGINAZIONE TABELLA WAZUH ---
 
-        story.append(Paragraph("⚠️ Vulnerabilità Software Rilevate (Wazuh)", h2_style))
+        story.append(Paragraph("Vulnerabilità Software Rilevate (Wazuh)", h2_style))
         if wz_rows:
             # ORDINAMENTO COMBINATO: Prima per gravità (decrescente), poi per data/ora (decrescente)
             wz_rows.sort(key=lambda x: (x['weight'], x['dt']), reverse=True)
