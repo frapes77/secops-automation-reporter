@@ -1,72 +1,90 @@
-# SecOps Automated Correlation & Baseline Pipeline
+# SecOps Automated Correlation Report
 
-![Python Version](https://shields.io)
-![License](https://shields.io)
+Script Python che genera un **report PDF esecutivo** correlando:
 
-Una pipeline di automazione professionale in **Python** progettata per centralizzare, correlare ed esportare in formato **PDF** gli alert critici provenienti da piattaforme di monitoraggio e sicurezza disallineate: **Wazuh (SIEM/XDR)** e **Zabbix (Infrastructure Monitoring)**.
+- **Zabbix**: criticità infrastrutturali attualmente attive (trigger in stato PROBLEM), filtrabili per priorità minima;
+- **Wazuh**: vulnerabilità software e alert di sicurezza rilevati in una finestra temporale configurabile, con verifica automatica se ogni CVE risulta **ancora attiva oggi** o **già risolta**.
 
-Questo strumento è specificamente orientato alle attività di **Vulnerability Management** e **Remediation (Patching)**, offrendo agli analisti SecOps la capacità di scattare "fotografie" storiche mirate dell'infrastruttura per valutare l'efficacia dei controlli di sicurezza nel tempo.
+Il risultato è un unico PDF con un pannello *Executive Summary*, la tabella Zabbix e la tabella Wazuh, ordinate per gravità e data.
 
----
+## Caratteristica principale: colonna "Stato"
 
-## Funzionalità Avanzate
+Per ogni vulnerabilità Wazuh trovata nella finestra storica selezionata, lo script interroga anche lo **stato corrente** dell'inventario vulnerabilità (`wazuh-states-vulnerabilities-*`) e marca ogni riga con:
 
-- **Analisi Temporale Retrospettiva (Baseline Audit):** Consente di definire interattivamente una data di riferimento e una finestra temporale (es. 30, 60, 90 giorni) per analizzare lo stato dei sistemi a ritroso, isolando perfettamente i perimetri pre e post-patching.
-- **Ereditarietà Cumulativa dei Livelli:** Menu di selezione della severità minima (da 1 a 5). Selezionando ad esempio il livello *High*, la pipeline estrae automaticamente sia gli eventi *High* che quelli a gravità superiore (*Critical* / *Disaster*), garantendo una visibilità cumulativa verso l'alto.
-- **Deduplicazione Totale Multi-Livello:** Implementa un algoritmo in grado di accorpare i log ripetitivi e ridondanti (es. flooding di eventi di sistema simili nello stesso minuto), riducendo la dimensione dei report e mantenendo solo record storici unici.
-- **Ordinamento Combinato Matematico:** Gli allarmi all'interno del report vengono organizzati secondo una doppia cernita: prioritizzati prima per peso di gravità (dal più pericoloso al meno pericoloso) e, a parità di livello, disposti in rigoroso ordine cronologico decrescente (dal più recente al meno recente).
-- **Executive Summary Grafico con Palette SecOps:** Il PDF generato include un pannello iniziale con i KPI numerici degli alert suddivisi per livello, formattati con tag colore condizionali nativi (Rosso, Arancio, Giallo, Blu, Verde) per una valutazione immediata del rischio aziendale.
+- 🟢 **Risolto** — la CVE era presente negli alert storici ma non risulta più nello stato attuale dell'host (tipicamente perché il pacchetto è stato aggiornato/patchato nel frattempo);
+- 🔴 **Non Risolto** — la CVE è ancora presente nello stato attuale dell'host;
+- ⚪ **N/D** — riga di alert generico (non associata a una CVE specifica, es. problemi dell'agent), lo stato risolto/non risolto non è applicabile.
 
----
+Questo evita il problema di leggere come "attive" vulnerabilità già sanate nel frattempo, semplicemente perché rientrano ancora nella finestra temporale di analisi.
 
-## Configurazione e Personalizzazione
+## Requisiti
 
-Lo script isola le credenziali e i parametri di rete all'inizio del file sorgente per un deployment sicuro conforme agli standard Open Source. Prima di avviarlo, inserisci i parametri della tua infrastruttura nelle apposite variabili:
+- Python 3.8+
+- Un Wazuh Indexer (OpenSearch) raggiungibile in rete, Wazuh **4.8+** (stessa dipendenza del modulo `wazuh_cve_report.py`)
+- Un'istanza Zabbix con API JSON-RPC abilitata e un token API valido
+- Connessione di rete verso entrambi i servizi
 
-```python
-# --- CONFIGURAZIONI INFRASTRUTTURA ---
-WAZUH_INDEXER_URL = "https://<IL_TUO_IP_WAZUH>:9200"
-ZABBIX_API_URL = "http://<IL_TUO_IP_ZABBIX>:PORTA/api_jsonrpc.php"
+## Installazione
 
-# --- TOKEN AUTOMATICO ZABBIX ---
-ZABBIX_API_TOKEN = "<IL_TUO_TOKEN_DI_AUTENTICAZIONE_ZABBIX>"
-```
-
----
-
-## Requisiti e Installazione
-
-1. **Clonazione della Repository:**
-   ```bash
-   git clone https://github.com
-   cd secops-automation-reporter
-   ```
-
-2. **Installazione delle Dipendenze:**
-   Assicurati di installare i moduli necessari prima di lanciare la pipeline:
-   ```bash
-   pip install requests reportlab
-   ```
-
----
-
-## Modalità d'Uso Interattiva
-
-Avvia lo script dal tuo terminale o IDE:
 ```bash
-python Analisi-Wazuh-Zabbix_rev5.py
+git clone <url-del-repo>
+cd <cartella-repo>
+pip install -r requirements.txt
 ```
 
-L'interfaccia a riga di comando guiderà l'operatore nella configurazione del report attraverso quattro passaggi:
-1. **Finestra Temporale:** Inserisci la data di riferimento (GG/MM/AAAA) per l'analisi a ritroso [Premere INVIO per partire da oggi]. Successivamente, definisci la durata in giorni della finestra [Default: 30 giorni].
-2. **Filtro di Severità:** Seleziona il livello minimo di sbarramento (da 1 a 5) [Default: 4 - High].
-3. **Filtro Host:** Digita il nome (anche parziale o case-insensitive) di una macchina specifica per isolare i suoi dati, oppure premi INVIO per generare un report globale sull'intera infrastruttura.
-4. **Autenticazione:** Inserisci l'username e la password di Wazuh Indexer (la password rimarrà nascosta a schermo durante la digitazione per ragioni di sicurezza).
+`requirements.txt`:
+```
+requests
+reportlab
+```
 
-### Output Rilasciato
-Al termine del processo verrà compilato un documento PDF executive denominato `SecOps_Report_<nomehost>_<data>.pdf` o `SecOps_Executive_Report_<data>.pdf`, strutturato a quattro colonne con layout responsive, tabelle autowrap e statistiche dei KPI in evidenza.
+## Configurazione
 
----
+All'interno dello script andranno inseriti gli IP delle macchine Wazuh e Zabbix, unitamente alla porta utilizzata per la connessione con Zabbix.
+
+Cerca e completa le righe:
+
+export WAZUH_INDEXER_URL="https://<IP_WAZUH_INDEXER>:9200"
+export ZABBIX_API_URL="http://<IP_ZABBIX>:<PORTA>/api_jsonrpc.php"
+export ZABBIX_API_TOKEN="il-tuo-token-zabbix"
+```
+
+## Utilizzo
+
+```bash
+python3 Analisi_Wazuh_Zabbix_rev7.py
+```
+
+Lo script guida l'utente con alcune domande interattive:
+
+1. **Giorni da analizzare a ritroso da oggi** (default 30)
+2. **Livello minimo di severità** (1-Information, 2-Low, 3-Medium, 4-High \[consigliato\], 5-Critical)
+3. **Host specifico** da analizzare (facoltativo, INVIO per l'intera infrastruttura)
+4. **Username Wazuh Indexer** e relativa password
+
+Al termine viene generato un PDF:
+- `SecOps_Report_<HOST>_<AAAAMMGG>.pdf` se hai specificato un host;
+- `SecOps_Executive_Report_<AAAAMMGG>.pdf` per l'intera infrastruttura.
+
+## Come funziona (in breve)
+
+1. `fetch_zabbix_problems()` interroga Zabbix per i trigger attualmente in stato PROBLEM, nati nella finestra di giorni selezionata, con priorità ≥ soglia scelta.
+2. `fetch_wazuh_alerts()` interroga l'indice storico `wazuh-alerts*` per gli eventi (vulnerabilità o alert di regola) nella stessa finestra temporale.
+3. `fetch_current_active_cves()` raccoglie tutte le CVE uniche trovate al punto 2 e verifica, con un'unica query sull'indice `wazuh-states-vulnerabilities-*`, quali coppie (host, CVE) sono **ancora attive oggi**.
+4. `generate_pdf_report()` assembla il PDF finale, colorando ogni riga Wazuh in base allo stato calcolato.
+
+## Limitazioni note
+
+- La verifica "Risolto/Non Risolto" fa match sul nome dell'agent (`agent.name`): se un host viene rinominato tra la data dell'alert storico e oggi, il match potrebbe non trovarlo e la riga risulterebbe marcata come "Non Risolto" anche se in realtà è stata risolta.
+- I problemi Zabbix restituiti sono per definizione quelli **attualmente attivi** (`filter: {value: 1, status: 0}`); il parametro giorni-indietro filtra solo la data di inizio del problema (`lastchange`), non introduce quindi lo stesso tipo di falso positivo delle vulnerabilità Wazuh.
+- Pensato per Wazuh **4.8+** (Vulnerability Detection su Indexer). Su versioni precedenti la logica di verifica dello stato corrente andrebbe riscritta usando l'API Manager.
+- Query Wazuh con `size: 10000`: con volumi di alert molto superiori andrebbe introdotta la paginazione.
+
+## Sicurezza
+
+- Di default la verifica del certificato SSL è disabilitata (`verify=False`) sia per Wazuh che per Zabbix, per compatibilità con certificati self-signed tipici di ambienti on-premise. Se i tuoi servizi hanno certificati validi, valuta di abilitare la verifica SSL nelle chiamate `requests`.
+- Usa, se possibile, un account Zabbix/Wazuh dedicato con permessi in sola lettura per questo script.
 
 ## Licenza
-Questo progetto è rilasciato sotto licenza MIT. Consulta il file `LICENSE` per ulteriori dettagli.
+
+Distribuito con licenza [MIT](LICENSE).
